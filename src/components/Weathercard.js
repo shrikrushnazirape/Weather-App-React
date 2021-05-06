@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./weather.css";
 import { Col, Container,  Row } from "react-bootstrap";
 import ListGroup from 'react-bootstrap/ListGroup'
@@ -16,6 +16,10 @@ import diwsaPaus from "../assets/iconfinder_weather_24_2682827.png";
 import pasu from "../assets/rain.svg";
 import barfa from "../assets/snowing.png";
 import vadal from "../assets/thunderstorm.png";
+import sunrise from "../assets/sunrise.png";
+import sunset from "../assets/sunset.png";
+import Humidity from "../assets/humidity.png"
+import pressure from "../assets/wind.png"
 
 import Modal from 'react-bootstrap/Modal';
 import ModalDialog from 'react-bootstrap/ModalDialog'
@@ -25,7 +29,7 @@ import ModalBody from 'react-bootstrap/ModalBody'
 import ModalFooter from 'react-bootstrap/ModalFooter'
 import Button from 'react-bootstrap/Button'
 
-
+const APIKEY = "33d7192a1b32fda0eaa0ed3bd3ec4485"
 
 
 function Locpic(props) {
@@ -34,18 +38,32 @@ function Locpic(props) {
     city:'Pune',
     country: 'India'
   })
+
+  const [Wdata, setWData] = useState([])
+
+
   const [weather, setWeather] = useState([])
-  const APIKEY = "33d7192a1b32fda0eaa0ed3bd3ec4485"
   
   async function WeatherData (e)  {
     e.preventDefault();
     const data = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${location.city},${location.country}&appid={API key}
+        `https://api.openweathermap.org/data/2.5/weather?q=${location.city},${location.country}&appid=${APIKEY}
         `
-    ).then((res)=> res.json()).then((data)=>console.log(data));
-    setWeather({data: data})
+    ).then((res)=> res.json())
+    .then((data)=> data);
+
+
+    (setWData({data : data}))
+    console.log("done")
+   
   }
 
+  const HandleClick = (e)=>{
+    e.preventDefault();
+    WeatherData(e);
+    props.onHide();
+
+}
 
 
     return(
@@ -70,7 +88,7 @@ function Locpic(props) {
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={
-            props.onHide }
+            HandleClick }
           >Close</Button>
         </Modal.Footer>
       </Modal>
@@ -79,13 +97,39 @@ function Locpic(props) {
 
 
 
-
-
-
 const Weathercard = () => {
     const [modalShow, setModalShow] = useState(false)
+    const [jaga, setJaga] = useState({
+      city: "Pune",
+      country : "India"
+    })
 
-   
+    const [Hawaman, setHawaman] = useState([])
+
+    useEffect( ()=> {
+      async function fetchdata(){
+        const request = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=${jaga.city},${jaga.country}&appid=${APIKEY}
+          `
+      ).then((res)=>res.json())
+      .then((request)=> setHawaman([request]))
+      return request
+      }
+      fetchdata();
+      console.log(Hawaman[0])
+    },[])
+    
+
+  const timeConversion=(e)=>{
+    var date = new Date( e * 1000);
+    var hours = date.getHours();
+    var minutes = "0" + date.getMinutes();
+    var seconds = "0" + date.getSeconds();
+    var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    return formattedTime;
+  }
+
+
   return (
     <div className="ctn">
       <div className="location">
@@ -105,17 +149,24 @@ const Weathercard = () => {
            <Col lg={6} md={12} className="today">
                <img src={bhyankarun} alt=""/>
                <div className="temp">
-               21.5  C
+               {Math.floor(Hawaman[0].main.temp - 273.15)}
+                <sup>o</sup>
+                C
                </div>
                <div className="range">
                    <div className="min">
                         min
                         <br/>
-                        30
+              {Math.floor(Hawaman[0].main.temp_min - 273.15)}
+                <sup>o</sup>
+                C
                    </div>
                    <div className="max">
                         max
-                        <br/>80
+                        <br/>
+                {Math.floor(Hawaman[0].main.temp_min - 273.15)}
+                <sup>o</sup>
+                C
                    </div>
                </div>
            </Col>
@@ -123,41 +174,35 @@ const Weathercard = () => {
            <ListGroup variant="flush">
                 <ListGroup.Item className="upitem">
                     <span >
-                        20/05/2002
+                        Humidity
                     </span>
-                    20 C
-                    <img src={bhyankarun} />
+                    {Hawaman[0].main.humidity}
+                    <img src={Humidity} />
                     </ListGroup.Item>
                 <ListGroup.Item className="upitem">
                     <span >
-                        20/05/2002
+                        Pressure
                     </span>
-                    20 C
-                    <img src={bhyankarun} />
+                    {Hawaman[0].main.pressure}
+                    <img src={pressure} />
                     </ListGroup.Item>
                 <ListGroup.Item className="upitem">
                     <span >
-                        20/05/2002
+                        Sunrise
                     </span>
-                    20 C
-                    <img src={bhyankarun} />
+                    
+                    {timeConversion(Hawaman[0].sys.sunrise)}
+                    <img src={sunrise} />
                     </ListGroup.Item>
                 <ListGroup.Item className="upitem">
                     <span >
-                        20/05/2002
+                      Sunset
                     </span>
-                    20 C
-                    <img src={bhyankarun} />
+                    {timeConversion(Hawaman[0].sys.sunset)}
+                    {/* {Hawaman[0].sys.sunset} */}
+                    <img src={sunset} />
                     </ListGroup.Item>
-                <ListGroup.Item className="upitem">
-                    <span >
-                        20/05/2002
-                    </span>
-                    20 C
-                    <img src={bhyankarun} />
-                    </ListGroup.Item>
-
-
+             
             </ListGroup>
            </Col>
        </Row>
